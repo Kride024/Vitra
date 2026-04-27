@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../api/auth.api.js";
 
 const SPECIALTY_OPTIONS = [
@@ -296,9 +296,9 @@ export default function Register() {
 
         <p style={{ textAlign: "center", marginTop: "15px" }}>
           Already have an account?{" "}
-          <a href="/login" style={{ color: "#2563eb" }}>
+          <Link to="/login" style={{ color: "#2563eb" }}>
             Login
-          </a>
+          </Link>
         </p>
       </div>
     </div>

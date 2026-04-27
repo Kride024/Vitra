@@ -11,13 +11,22 @@ const appointmentRoutes = require("./routes/appointmentRoutes");
 const app = express();
 
 // Parse allowed origins from environment variable
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000").split(",");
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+      let isVercelPreview = false;
+      try {
+        isVercelPreview = /\.vercel\.app$/.test(new URL(origin).hostname);
+      } catch (error) {
+        isVercelPreview = false;
+      }
+      if (allowedOrigins.includes(origin) || isVercelPreview) {
         return callback(null, true);
       }
       console.warn(`CORS blocked origin: ${origin}`);
@@ -31,17 +40,17 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/appointments", appointmentRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 
 sequelize
   .authenticate()
   .then(() => {
-    console.log("MySQL connected");
+    console.log("✅ Connected to Aiven MySQL");
     return sequelize.sync({ alter: true });
   })
   .then(() => {
     console.log("Models synced with MySQL");
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
   })
   .catch((err) => {
     console.log("DB/Sync error:", err);

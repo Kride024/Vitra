@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { loginUser } from "../api/auth.api";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 function Login() {
@@ -108,9 +108,9 @@ function Login() {
 
         <p style={{ textAlign: "center", marginTop: "15px" }}>
           Don't have an account?{" "}
-          <a href="/register" style={{ color: "#2563eb" }}>
+          <Link to="/register" style={{ color: "#2563eb" }}>
             Register
-          </a>
+          </Link>
         </p>
       </div>
     </div>
