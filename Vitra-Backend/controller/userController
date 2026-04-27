@@ -1,0 +1,209 @@
+const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken")
+const { Op } = require("sequelize");
+require('dotenv').config();
+
+const ALLOWED_ROLES = ["DOCTOR", "PATIENT"];
+
+const normalizeRole = (role) => {
+  if (!role) return null;
+
+  const upperRole = String(role).toUpperCase();
+  if (upperRole === "ADMIN") return "DOCTOR";
+  if (upperRole === "USER") return "PATIENT";
+
+  return upperRole;
+};
+
+const login = async(req,res)=>{
+   try{
+       const {email,password, role} = req.body;
+       //validate fields
+       if(!email || !password){
+         return res.status(400).json({message:"Email and password required"});
+       }
+
+       const normalizedRole = normalizeRole(role);
+       if (normalizedRole && !ALLOWED_ROLES.includes(normalizedRole)) {
+         return res.status(400).json({ message: "Invalid role" });
+       }
+       
+       //find user
+       const user = await User.findOne({where:{email}});
+       if(!user){
+         return res.status(401).json({message: "Invalid credentials"});
+       }
+
+       const userRole = normalizeRole(user.role);
+
+       if (normalizedRole && userRole !== normalizedRole) {
+         return res.status(401).json({ message: "Invalid role for this account" });
+       }
+
+       //compare password
+
+       const isMatch = await bcrypt.compare(password,user.password);
+       if(!isMatch){
+          return res.status(401).json({message:"Invalid Credentials"});
+       }
+
+       //create token
+  
+      const token = jwt.sign({id:user.id , email:user.email, phone:user.phone, role:userRole, firstName:user.firstName, lastName:user.lastName}, process.env.JWT_SECRET || "SECRET_KEY", {expiresIn:"1h"});
+
+       //send response
+      res.json({message:"Login successful",token,user:{id:user.id,email:user.email,phone:user.phone,role:userRole,firstName:user.firstName,lastName:user.lastName}});
+
+   }catch(err){
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Login failed" });
+   }
+}
+
+const  register = async(req,res) =>{
+    try{
+    const {firstName, lastName, phone, email, password, role, specialty, experienceYears, consultationFee, availability, profileImageUrl} = req.body;
+     //validate field
+     if(!firstName || !lastName || !phone || !email || !password){
+        return res.status(400).json({message:"All fields are required"});
+     }
+
+     const normalizedRole = normalizeRole(role) || "PATIENT";
+     if (!ALLOWED_ROLES.includes(normalizedRole)) {
+       return res.status(400).json({ message: "Invalid role" });
+     }
+
+     if (normalizedRole === "DOCTOR") {
+       if (!specialty || !experienceYears || !consultationFee || !availability) {
+         return res.status(400).json({
+           message: "Doctor registration requires specialty, experienceYears, consultationFee and availability",
+         });
+       }
+     }
+
+     //check existing user
+     const existingUser = await User.findOne({where:{email}});
+     if(existingUser){
+        return res.status(409).json({message: "User already exists"});
+     }
+
+     //hash password
+     const hashedPassword = await bcrypt.hash(password,10);
+
+     //role control
+   //   const userRole=role==="ADMIN"?"ADMIN":"USER";
+
+    //save user
+    const user = await User.create({
+      firstName,
+      lastName,
+      phone,
+      email,
+      password:hashedPassword,
+      role: normalizedRole,
+      specialty: normalizedRole === "DOCTOR" ? specialty : null,
+      experienceYears: normalizedRole === "DOCTOR" ? Number(experienceYears) : null,
+      consultationFee: normalizedRole === "DOCTOR" ? Number(consultationFee) : null,
+      availability: normalizedRole === "DOCTOR" ? availability : null,
+      profileImageUrl: normalizedRole === "DOCTOR" ? profileImageUrl || null : null,
+    });
+    res.status(201).json({message: "Registration successful", user: {id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, phone: user.phone, role: normalizeRole(user.role), specialty: user.specialty, experienceYears: user.experienceYears, consultationFee: user.consultationFee, availability: user.availability, profileImageUrl: user.profileImageUrl, rating: user.rating}});
+      } catch (err) {
+  console.error("FULL REGISTER ERROR ↓↓↓");
+  console.error(err);              // 👈 full error object
+  console.error(err.parent);       // 👈 MySQL error
+  res.status(500).json({
+    message: "Error creating user",
+    error: err.message,
+  });
+}
+};
+
+const getMyProfile = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ["id", "firstName", "lastName", "phone", "email", "role", "specialty", "experienceYears", "consultationFee", "availability", "profileImageUrl", "rating"],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const normalizedUserRole = normalizeRole(user.role);
+
+    return res.json({
+      message: "Profile fetched successfully",
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        email: user.email,
+        role: normalizedUserRole,
+        specialty: user.specialty,
+        experienceYears: user.experienceYears,
+        consultationFee: user.consultationFee,
+        availability: user.availability,
+        profileImageUrl: user.profileImageUrl,
+        rating: user.rating,
+      },
+      appointmentHistory: [],
+      medicalHistory: [],
+    });
+  } catch (error) {
+    console.error("Profile fetch error:", error);
+    return res.status(500).json({ message: "Failed to fetch profile" });
+  }
+};
+
+const getDoctors = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ["id", "firstName", "lastName", "email", "phone", "role", "specialty", "experienceYears", "consultationFee", "availability", "profileImageUrl", "rating"],
+      where: {
+        role: {
+          [Op.in]: ["DOCTOR", "ADMIN"],
+        },
+      },
+      order: [["firstName", "ASC"]],
+    });
+
+    const doctors = users.map((doc) => ({
+      id: doc.id,
+      firstName: doc.firstName,
+      lastName: doc.lastName,
+      fullName: `${doc.firstName} ${doc.lastName}`,
+      email: doc.email,
+      phone: doc.phone,
+      role: normalizeRole(doc.role),
+      specialty: doc.specialty,
+      experienceYears: doc.experienceYears,
+      consultationFee: doc.consultationFee,
+      availability: doc.availability,
+      profileImageUrl: doc.profileImageUrl,
+      rating: doc.rating,
+    }));
+
+    return res.json({ doctors });
+  } catch (error) {
+    console.error("Get doctors error:", error);
+    return res.status(500).json({ message: "Failed to fetch doctors" });
+  }
+};
+
+module.exports = {
+    register,
+    login,
+    getMyProfile,
+    getDoctors,
+};
+
+
+
+// User.findAll();           // GET all users
+// User.findByPk(1);        // GET user with id=1
+// User.findOne({where: {email: "test@gmail.com"}}); // GET user by email
+// User.create({name: "John", email: "john@gmail.com"}); // CREATE user
+// User.update({name: "Jane"}, {where: {id: 1}}); // UPDATE user
+// User.destroy({where: {id: 1}}); // DELETE user
