@@ -13,6 +13,7 @@ import {
   Instagram
 } from 'lucide-react';
 
+
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -29,6 +30,10 @@ const Home = () => {
     }
 
     navigate("/appointments");
+  };
+
+  const handleStartMeeting = () => {
+    window.open("https://vedio-app-k92u.onrender.com", "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -78,9 +83,15 @@ const Home = () => {
       </p>
       
       <div className="flex flex-wrap justify-center lg:justify-start gap-5 pt-4">
-        <button className="bg-blue-500 text-white px-10 py-4 rounded-xl font-bold shadow-xl shadow-blue-500/20 hover:bg-blue-400 transition-all hover:-translate-y-1 active:scale-95">
-          Get Started
-        </button>
+        <button
+  onClick={() => navigate("/emergency")}
+  className="border-2 border-red-500 text-red-400 px-10 py-4 rounded-xl font-bold 
+             shadow-lg shadow-red-500/30 
+             hover:bg-red-500/10 
+             transition-all"
+>
+  🚨 Emergency Mode
+</button>
         <button
           type="button"
           onClick={handleBookAppointment}
@@ -215,7 +226,11 @@ const Home = () => {
     </p>
 
     <div className="flex flex-wrap justify-center md:justify-start gap-4">
-      <button className="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-[0_15px_30px_-5px_rgba(37,99,235,0.4)] transition-all hover:-translate-y-1 text-white">
+      <button
+        type="button"
+        onClick={handleStartMeeting}
+        className="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-2xl flex items-center gap-3 font-bold shadow-[0_15px_30px_-5px_rgba(37,99,235,0.4)] transition-all hover:-translate-y-1 text-white"
+      >
         <Video className="w-5 h-5" /> Start New Meeting
       </button>
       <button className="bg-white/5 hover:bg-white/10 border border-white/10 px-8 py-4 rounded-2xl font-bold transition-all text-white">

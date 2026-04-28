@@ -12,6 +12,8 @@ import PatientPage from "./Pages/PatientPage.jsx";
 import PersonalRoute from "./Pages/PersonalRoute.jsx";
 import AppointmentPage from "./Pages/AppointmentPage.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
+import EmergencyMode from "./Pages/EmergencyMode";
+import MedicineComparator from "./Pages/MedicineComparator.jsx";
 import "./App.css";
 
 function App() {
@@ -39,6 +41,8 @@ function App() {
             <Route path="/appointments" element={<AppointmentPage />} />
           </Route>
 
+          <Route path="/emergency" element={<EmergencyMode />}/>
+
           <Route element={<ProtectedRoute allowedRoles={["DOCTOR"]} />}>
             <Route path="/doctor" element={<DoctorPage />} />
           </Route>
@@ -51,6 +55,7 @@ function App() {
             <Route path="/services" element={<Service />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/medicine-comparator" element={<MedicineComparator />} />
             <Route path="/about" element={<AboutPage />} />
           </Route>
         </Routes>

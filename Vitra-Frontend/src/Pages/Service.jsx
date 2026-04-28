@@ -1,10 +1,15 @@
 import React from "react";
+import bodyCheckImage from "../assets/BodyCheck.jpeg";
+import hospitalTrackerImage from "../assets/HospitalTracker.jpeg";
+import reportAnalyzerImage from "../assets/reportAnalyzer.jpeg";
+import emergencyCareImage from "../assets/Emergency.jpeg";
+import serviceBannerImage from "../assets/Service Banner.jpeg";
 
 const services = [
-  { title: "Body Checkup", desc: "Dynamic interactive health checkup experiences.", color: "#14b8a6", img: "https://hclhealthcare.in/wp-content/uploads/2023/11/primary-care.jpg" },
-  { title: "Track Hospitals", desc: "Maps and hospital discovery using modern integrations.", color: "#6366f1", img: "https://hclhealthcare.in/wp-content/uploads/2023/11/preventive-care-1.jpg" },
-  { title: "Report Analysis", desc: "Automated analysis for faster medical insights.", color: "#3b82f6", img: "https://hclhealthcare.in/wp-content/uploads/2023/11/specialty-care.jpg" },
-  { title: "Emergency Care", desc: "Remote consultations & emergency support.", color: "#ef4444", img: "https://hclhealthcare.in/wp-content/uploads/2023/11/emergency-care.jpg" },
+  { title: "Body Checkup", desc: "Dynamic interactive health checkup experiences.", color: "#14b8a6", img: bodyCheckImage },
+  { title: "Track Hospitals", desc: "Maps and hospital discovery using modern integrations.", color: "#6366f1", img: hospitalTrackerImage },
+  { title: "Report Analysis", desc: "Automated analysis for faster medical insights.", color: "#3b82f6", img: reportAnalyzerImage },
+  { title: "Emergency Care", desc: "Remote consultations & emergency support.", color: "#ef4444", img: emergencyCareImage },
 ];
 
 export default function Service() {
@@ -44,7 +49,7 @@ export default function Service() {
 
       <div className="hero-section" />
       <section className="wellness-container">
-        <img src="https://hclhealthcare.in/wp-content/uploads/2023/11/wellness.jpeg" alt="Wellness" />
+        <img src={serviceBannerImage} alt="Wellness" />
       </section>
 
       <main className="content">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { 
   Target, 
   Eye, 
@@ -8,8 +8,14 @@ import {
   Twitter, 
   Instagram 
 } from 'lucide-react'; // Added missing social icons
+import VideoDoctor from '../assets/VideoDoctor.mp4';
 
 const AboutPage = () => {
+  const visionMissionRef = useRef(null);
+
+  const handleScrollToVisionMission = () => {
+    visionMissionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
   return (
     <div className="about-page min-h-screen bg-[#020617] text-white">
       {/* 1. STYLES */}
@@ -53,7 +59,10 @@ const AboutPage = () => {
               We are a dedicated team committed to revolutionizing healthcare by providing 
               innovative solutions and resources to improve patient care and wellness. 
             </p>
-            <button className="group bg-[#2563eb] hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 transition-all transform hover:scale-105 shadow-lg shadow-blue-500/20">
+            <button
+              onClick={handleScrollToVisionMission}
+              className="group bg-[#2563eb] hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 transition-all transform hover:scale-105 shadow-lg shadow-blue-500/20"
+            >
               Know about Us
               <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
             </button>
@@ -63,7 +72,7 @@ const AboutPage = () => {
 
       <div className="px-6 md:px-12 lg:px-24">
         {/* 4. VISION & MISSION CARDS */}
-        <div className="grid md:grid-cols-2 gap-8 mb-20">
+        <div ref={visionMissionRef} className="grid md:grid-cols-2 gap-8 mb-20">
           <div className="bg-slate-900/40 backdrop-blur-md border border-white/10 p-12 rounded-[3.5rem] hover:border-blue-500/30 transition-all">
             <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-8 border border-blue-500/20">
               <Eye className="w-8 h-8 text-blue-400" />
@@ -92,14 +101,14 @@ const AboutPage = () => {
               <h2 className="text-5xl font-black">Expert Feedback</h2>
               <div className="h-2 w-24 bg-blue-500 rounded-full"></div>
               <p className="text-xl text-slate-400 leading-relaxed">
-                "We are honored to share valuable feedback from the (CMO) Chief Medical Officer..."
+                "We are honored to share valuable feedback from the (CMO) Chief Medical Officer of MMMUT, Gorakhpur, highlighting the critical role our platform plays in improving healthcare access for underserved communities. This message reflects our commitment to making a difference."
               </p>
               <div className="flex items-center gap-4 pt-4">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
                   <Users className="text-white w-7 h-7" />
                 </div>
                 <div>
-                  <p className="font-bold text-xl">Dr. Expert Name</p>
+                  <p className="font-bold text-xl">Dr. AK Pandey</p>
                   <p className="text-blue-400">Chief Medical Officer</p>
                 </div>
               </div>
@@ -108,8 +117,8 @@ const AboutPage = () => {
             <div className="flex-1 w-full group relative">
               <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
               <div className="relative bg-black rounded-[2rem] overflow-hidden border border-white/10 aspect-video shadow-2xl">
-                <video className="w-full h-full object-cover" controls poster="https://images.unsplash.com/photo-1581056771107-24ca5f033842?auto=format&fit=crop&w=800">
-                  <source src="your-video-url.mp4" type="video/mp4" />
+                <video className="w-full h-full object-cover" controls>
+                  <source src={VideoDoctor} type="video/mp4" />
                 </video>
               </div>
             </div>

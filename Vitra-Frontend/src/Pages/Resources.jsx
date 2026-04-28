@@ -1,14 +1,16 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import aiHealthImage from "../assets/AI Health.jpeg";
+import darkCircleImage from "../assets/Dark Circle.jpeg";
+import Medicine from "../assets/Medicine.jpeg.jpeg";
 
 const resourceData = [
-  { id: 1, title: "BMI Calculator", link: "https://jayawd456.github.io/BMI-Calculator/", img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=500&q=80", label: "CHECK BMI" },
-  { id: 2, title: "Calorie Counter", link: "https://jayawd456.github.io/Calorie-Calculator/", img: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=500&q=80", label: "CHECK CALORIE" },
-  { id: 3, title: "Hydration Tracker", link: "https://jayawd456.github.io/Water-Intake/", img: "https://picsum.photos/id/249/500/350", label: "CHECK WATER" },
+  { id: 1, title: "Medicine Comparator", link: "/medicine-comparator", isInternal: true, img: Medicine, label: "OPEN COMPARATOR" },
+  { id: 2, title: "AL Health Analyser", link: "https://huggingface.co/spaces/beingVaishnavi/api", img: aiHealthImage, label: "CHECK Health" },
+  { id: 3, title: "Dark Circle Detector", link: "https://dark-circle-frontend1-v5gg.vercel.app/", img: darkCircleImage, label: "CHECK DarkCircle" },
   { id: 4, title: "BP Calculator", link: "https://jayawd456.github.io/BP-Calculator/", img: "https://images.unsplash.com/photo-1615461066159-fea0960485d5?auto=format&fit=crop&w=500&q=80", label: "CHECK BP" },
   { id: 5, title: "Cycle Predictor", link: "https://jayawd456.github.io/Mensuration-Cycle-Predictor/", img: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=500&q=80", label: "CHECK CYCLE" },
   { id: 6, title: "Heart Rate", link: "https://jayawd456.github.io/Heart-Rate-Checker/", img: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=500&q=80", label: "CHECK PULSE" },
-  { id: 7, title: "Infant Scheduler", link: "https://jayawd456.github.io/Immunization-Scheduler/", img: "https://images.unsplash.com/photo-1584362917165-526a968579e8?auto=format&fit=crop&w=500&q=80", label: "CHECK VACCINES" },
-  { id: 8, title: "Nutrition Label", link: "https://jayawd456.github.io/Nutrition-Checker/", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80", label: "CHECK NUTRITION" },
 ];
 
 export default function Resources() {
@@ -128,9 +130,15 @@ export default function Resources() {
               </div>
               <div className="card-body">
                 <h3>{item.title}</h3>
-                <a href={item.link} target="_blank" rel="noopener noreferrer" className="action-btn">
-                  {item.label}
-                </a>
+                {item.isInternal ? (
+                  <Link to={item.link} className="action-btn">
+                    {item.label}
+                  </Link>
+                ) : (
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="action-btn">
+                    {item.label}
+                  </a>
+                )}
               </div>
             </div>
           ))}
