@@ -41,18 +41,33 @@ app.use("/api/users", userRoutes);
 app.use("/api/appointments", appointmentRoutes);
 
 const PORT = process.env.PORT || 10000;
+// Show which DB host/port we will attempt to connect to (helps debug mismatched ports)
+console.log(`DB host: ${process.env.DB_HOST || "(not set)"}`);
+console.log(`DB port: ${process.env.DB_PORT || "(not set)"}`);
 
-sequelize
-  .authenticate()
-  .then(() => {
-    console.log("✅ Connected to Aiven MySQL");
-    return sequelize.sync({ alter: true });
-  })
-  .then(() => {
-    console.log("Models synced with MySQL");
-    app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.log("DB/Sync error:", err);
-    process.exit(1);
-  });
+const startServer = async () => {
+  const maxAttempts = 5;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await sequelize.authenticate();
+      console.log("✅ Connected to Aiven MySQL");
+      await sequelize.sync({ alter: true });
+      console.log("Models synced with MySQL");
+      app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+      return;
+    } catch (err) {
+      // Log full error object to aid debugging (stack, code, errno, etc.)
+      console.error(`⚠️  DB/Sync error (attempt ${attempt}/${maxAttempts}):`, err);
+      if (attempt < maxAttempts) {
+        const backoffMs = attempt * 2000;
+        console.log(`Retrying DB connection in ${backoffMs}ms...`);
+        await new Promise((r) => setTimeout(r, backoffMs));
+      }
+    }
+  }
+
+  console.log("⚠️  Starting server without database connection...");
+  app.listen(PORT, () => console.log(`Server is running on port ${PORT} (DB offline)`));
+};
+
+startServer();
