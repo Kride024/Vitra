@@ -11,6 +11,7 @@ import DoctorPage from "./Pages/DoctorPage.jsx";
 import PatientPage from "./Pages/PatientPage.jsx";
 import PersonalRoute from "./Pages/PersonalRoute.jsx";
 import AppointmentPage from "./Pages/AppointmentPage.jsx";
+import ChatPage from "./Pages/ChatPage.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import EmergencyMode from "./Pages/EmergencyMode";
 import MedicineComparator from "./Pages/MedicineComparator.jsx";
@@ -57,6 +58,7 @@ function App() {
             <Route path="/resources" element={<Resources />} />
             <Route path="/medicine-comparator" element={<MedicineComparator />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/chat/:appointmentId" element={<ChatPage />} />
           </Route>
         </Routes>
       </main>

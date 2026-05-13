@@ -107,6 +107,10 @@ function DoctorPage() {
     navigate("/login");
   };
 
+  const openChat = (appointmentId) => {
+    navigate(`/chat/${appointmentId}`);
+  };
+
   return (
     <div style={{ maxWidth: "900px", margin: "30px auto", padding: "20px" }}>
       <h1>Doctor Personal Page</h1>
@@ -243,6 +247,25 @@ function DoctorPage() {
                         </button>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {item.status === "APPROVED" && (
+                  <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px solid #e5e7eb" }}>
+                    <button
+                      onClick={() => openChat(item.id)}
+                      style={{
+                        padding: "8px 16px",
+                        background: "#059669",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontWeight: "600",
+                      }}
+                    >
+                      💬 Open Chat
+                    </button>
                   </div>
                 )}
               </div>

@@ -65,6 +65,10 @@ function PatientPage() {
     navigate("/login");
   };
 
+  const openChat = (appointmentId) => {
+    navigate(`/chat/${appointmentId}`);
+  };
+
   return (
     <div style={{ maxWidth: "900px", margin: "30px auto", padding: "20px" }}>
       <h1>Patient Personal Page</h1>
@@ -195,7 +199,7 @@ function PatientPage() {
                   {item.status === "APPROVED" && (
                     <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px solid #e5e7eb" }}>
                       <button
-                        onClick={() => alert("Chat will be enabled soon!")}
+                        onClick={() => openChat(item.id)}
                         style={{
                           padding: "10px 16px",
                           background: "#059669",
@@ -210,7 +214,7 @@ function PatientPage() {
                         💬 Start Chat
                       </button>
                       <button
-                        onClick={() => alert("Video call will be enabled soon!")}
+                        onClick={() => alert("Video call will be added next.")}
                         style={{
                           padding: "10px 16px",
                           background: "#2563eb",
@@ -221,7 +225,7 @@ function PatientPage() {
                           fontWeight: "600",
                         }}
                       >
-                        📹 Schedule Video Call
+                        📹 Video Call Soon
                       </button>
                     </div>
                   )}
