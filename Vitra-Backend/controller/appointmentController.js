@@ -70,6 +70,48 @@ const createAppointment = async (req, res) => {
   }
 };
 
+const getAppointmentById = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+
+    if (!appointmentId) {
+      return res.status(400).json({ message: "appointmentId is required" });
+    }
+
+    const appointment = await Appointment.findByPk(appointmentId);
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    if (appointment.patientUserId !== req.user.id && appointment.doctorUserId !== req.user.id) {
+      return res.status(403).json({ message: "You are not a participant in this appointment" });
+    }
+
+    return res.json({
+      appointment: {
+        id: appointment.id,
+        status: appointment.status,
+        patientUserId: appointment.patientUserId,
+        patientName: appointment.patientName,
+        patientEmail: appointment.patientEmail,
+        patientPhone: appointment.patientPhone,
+        doctorUserId: appointment.doctorUserId,
+        doctorName: appointment.doctorName,
+        doctorEmail: appointment.doctorEmail,
+        scheduledAt: appointment.scheduledAt,
+        callDurationMinutes: appointment.callDurationMinutes,
+        callExtendedMinutes: appointment.callExtendedMinutes,
+        healthDescription: appointment.healthDescription,
+        createdAt: appointment.createdAt,
+        updatedAt: appointment.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error("Get appointment by id error:", error);
+    return res.status(500).json({ message: "Failed to fetch appointment" });
+  }
+};
+
 const getDoctorAppointments = async (req, res) => {
   try {
     const doctor = await User.findByPk(req.user.id);
@@ -228,6 +270,7 @@ const extendCallDuration = async (req, res) => {
 
 module.exports = {
   createAppointment,
+  getAppointmentById,
   getDoctorAppointments,
   getPatientAppointments,
   approveAppointment,

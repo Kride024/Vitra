@@ -32,7 +32,7 @@ const Appointment = sequelize.define("Appointment", {
   },
   scheduledAt: {
     type: DataTypes.DATE,
-    allowNull: false,
+    allowNull: true,
   },
   callDurationMinutes: {
     type: DataTypes.INTEGER,

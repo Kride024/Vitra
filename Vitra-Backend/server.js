@@ -243,7 +243,7 @@ const startServer = async () => {
     try {
       await sequelize.authenticate();
       console.log("✅ Connected to Aiven MySQL");
-      await sequelize.sync({ alter: true });
+      await sequelize.sync();
       console.log("Models synced with MySQL");
       server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
       return;
@@ -258,8 +258,8 @@ const startServer = async () => {
     }
   }
 
-  console.log("⚠️  Starting server without database connection...");
-  server.listen(PORT, () => console.log(`Server is running on port ${PORT} (DB offline)`));
+  console.error("❌ Database connection failed after retries. Server will not start without a database in this environment.");
+  process.exit(1);
 };
 
 startServer();

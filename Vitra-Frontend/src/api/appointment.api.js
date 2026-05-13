@@ -4,6 +4,8 @@ export const getDoctors = () => api.get("/users/doctors");
 
 export const createAppointment = (payload) => api.post("/appointments", payload);
 
+export const getAppointmentById = (appointmentId) => api.get(`/appointments/${appointmentId}`);
+
 export const getDoctorAppointments = () => api.get("/appointments/doctor");
 
 export const getPatientAppointments = () => api.get("/appointments/patient");

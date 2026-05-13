@@ -77,7 +77,7 @@ Test these endpoints before deploying:
 
 #### Backend (.env)
 ```
-DB_NAME=backend_xyz
+DB_NAME=defaultdb
 DB_USER=avnadmin
 DB_PASSWORD=<your_actual_password>
 DB_HOST=mysql-1663326c-kritiyadavcoding-6ab9.a.aivencloud.com
@@ -120,7 +120,7 @@ VITE_API_URL=https://api.yourdomain.com
 | Issue | Solution |
 |-------|----------|
 | CORS errors | Check ALLOWED_ORIGINS in backend .env matches frontend domain |
-| Database connection fails | Verify DB_PASSWORD and DB_HOST in .env |
+| Database connection fails | Verify DB_NAME, DB_PASSWORD, DB_HOST, and DB_PORT in Render env vars |
 | JWT token errors | Ensure JWT_SECRET is consistent and present in .env |
 | 404 API errors | Check VITE_API_URL in frontend .env |
 | Build fails | Run `npm install` again, check for syntax errors |

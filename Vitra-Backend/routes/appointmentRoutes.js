@@ -4,6 +4,7 @@ const router = express.Router();
 const { authMiddleware } = require("../middleware/authMiddleware");
 const {
   createAppointment,
+  getAppointmentById,
   getDoctorAppointments,
   getPatientAppointments,
   approveAppointment,
@@ -17,5 +18,6 @@ router.get("/patient", authMiddleware, getPatientAppointments);
 router.patch("/:appointmentId/approve", authMiddleware, approveAppointment);
 router.patch("/:appointmentId/reject", authMiddleware, rejectAppointment);
 router.patch("/:appointmentId/extend-call", authMiddleware, extendCallDuration);
+router.get("/:appointmentId", authMiddleware, getAppointmentById);
 
 module.exports = router;

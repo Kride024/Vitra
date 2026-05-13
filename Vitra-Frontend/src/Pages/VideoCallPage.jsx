@@ -2,8 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { io } from "socket.io-client";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { getChatThread } from "../api/chat.api";
-import { extendCallDuration } from "../api/appointment.api";
+import { extendCallDuration, getAppointmentById } from "../api/appointment.api";
 
 function VideoCallPage() {
   const { appointmentId } = useParams();
@@ -60,6 +59,13 @@ function VideoCallPage() {
       msRemaining: Math.max(0, endMs - nowMs),
       minutesRemaining: Math.max(0, Math.ceil((endMs - nowMs) / 60000)),
     };
+  };
+
+  const fetchAppointmentWindow = async () => {
+    const response = await getAppointmentById(appointmentId);
+    const appointmentData = response.data?.appointment || null;
+    setThread(appointmentData);
+    setCallWindow(createCallWindow(appointmentData));
   };
 
   const roomTitle = useMemo(() => {
@@ -166,6 +172,7 @@ function VideoCallPage() {
       if (updatedAppointment) {
         setThread(updatedAppointment);
         setCallWindow(createCallWindow(updatedAppointment));
+        await fetchAppointmentWindow();
       }
     } catch (extendError) {
       setVideoError(extendError.response?.data?.message || "Failed to extend call duration");
@@ -179,10 +186,7 @@ function VideoCallPage() {
       try {
         setLoading(true);
         setError("");
-        const response = await getChatThread(appointmentId);
-        const appointmentData = response.data?.appointment || null;
-        setThread(appointmentData);
-        setCallWindow(response.data?.callWindow || createCallWindow(appointmentData));
+        await fetchAppointmentWindow();
       } catch (loadError) {
         const serverMessage = loadError.response?.data?.message;
         const statusCode = loadError.response?.status;
@@ -238,9 +242,6 @@ function VideoCallPage() {
     socket.on("video:joined", (payload) => {
       setVideoJoined(true);
       setVideoParticipants(payload?.participantCount || 1);
-      if (payload?.callWindow) {
-        setCallWindow(payload.callWindow);
-      }
     });
 
     socket.on("video:peer-ready", async () => {

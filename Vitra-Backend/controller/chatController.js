@@ -122,10 +122,13 @@ const getVideoCallAccessContext = async (userId, appointmentId) => {
     throw createHttpError(400, "Appointment schedule is missing");
   }
 
-  const callWindow = getCallWindow(appointment);
-  if (!callWindow.isActive) {
-    throw createHttpError(403, "Video call is not active at this time");
-  }
+ const now = new Date();
+const start = new Date(appointment.scheduledAt);
+
+// allow 10 min early join
+if (now < start.getTime() - 10 * 60 * 1000) {
+  throw createHttpError(403, "Video call not started yet");
+}
 
   return { appointment, user, callWindow };
 };
