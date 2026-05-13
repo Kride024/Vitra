@@ -69,6 +69,10 @@ function PatientPage() {
     navigate(`/chat/${appointmentId}`);
   };
 
+  const openVideoCall = (appointmentId) => {
+    navigate(`/video-call/${appointmentId}`);
+  };
+
   return (
     <div style={{ maxWidth: "900px", margin: "30px auto", padding: "20px" }}>
       <h1>Patient Personal Page</h1>
@@ -138,6 +142,14 @@ function PatientPage() {
                   <div style={{ background: "#fff", padding: "12px", borderRadius: "6px", marginBottom: "15px", border: "1px solid #e5e7eb" }}>
                     <p><strong>Doctor Email:</strong> {item.doctorEmail}</p>
                     <p><strong>Doctor Phone:</strong> {item.doctorPhone}</p>
+                    <p>
+                      <strong>Scheduled Time:</strong>{" "}
+                      {item.scheduledAt ? new Date(item.scheduledAt).toLocaleString() : "Not set"}
+                    </p>
+                    <p>
+                      <strong>Call Duration:</strong>{" "}
+                      {(item.callDurationMinutes || 60) + (item.callExtendedMinutes || 0)} min
+                    </p>
                     <p style={{ marginTop: "10px" }}>
                       <strong>Your Description:</strong>
                     </p>
@@ -214,7 +226,7 @@ function PatientPage() {
                         💬 Start Chat
                       </button>
                       <button
-                        onClick={() => alert("Video call will be added next.")}
+                        onClick={() => openVideoCall(item.id)}
                         style={{
                           padding: "10px 16px",
                           background: "#2563eb",
@@ -225,7 +237,7 @@ function PatientPage() {
                           fontWeight: "600",
                         }}
                       >
-                        📹 Video Call Soon
+                        📹 Open Video Call
                       </button>
                     </div>
                   )}

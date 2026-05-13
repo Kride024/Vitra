@@ -17,6 +17,8 @@ const AppointmentPage = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [appointmentTime, setAppointmentTime] = useState("");
   const [healthDescription, setHealthDescription] = useState("");
   const [reportNotes, setReportNotes] = useState("");
   const [imageAttachment, setImageAttachment] = useState("");
@@ -86,6 +88,8 @@ const AppointmentPage = () => {
   const closeBookingForm = () => {
     setShowForm(false);
     setSelectedDoctor(null);
+    setAppointmentDate("");
+    setAppointmentTime("");
     setHealthDescription("");
     setReportNotes("");
     setImageAttachment("");
@@ -104,10 +108,27 @@ const AppointmentPage = () => {
       return;
     }
 
+    if (!appointmentDate || !appointmentTime) {
+      alert("Please select appointment date and time.");
+      return;
+    }
+
+    const scheduledAt = new Date(`${appointmentDate}T${appointmentTime}`);
+    if (Number.isNaN(scheduledAt.getTime())) {
+      alert("Invalid appointment date/time selected.");
+      return;
+    }
+
+    if (scheduledAt.getTime() < Date.now()) {
+      alert("Appointment time must be in the future.");
+      return;
+    }
+
     try {
       setSubmitting(true);
       await createAppointment({
         doctorUserId: selectedDoctor.id,
+        scheduledAt: scheduledAt.toISOString(),
         healthDescription,
         reportNotes,
         imageAttachment,
@@ -332,6 +353,29 @@ const AppointmentPage = () => {
                     readOnly
                     className="md:col-span-2 bg-[#050a15] border border-white/10 rounded-xl p-3 text-sm"
                   />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-blue-400">Appointment Date</label>
+                    <input
+                      type="date"
+                      value={appointmentDate}
+                      onChange={(e) => setAppointmentDate(e.target.value)}
+                      required
+                      className="w-full mt-1 bg-[#050a15] border border-white/10 rounded-xl p-3 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-blue-400">Appointment Time</label>
+                    <input
+                      type="time"
+                      value={appointmentTime}
+                      onChange={(e) => setAppointmentTime(e.target.value)}
+                      required
+                      className="w-full mt-1 bg-[#050a15] border border-white/10 rounded-xl p-3 text-sm"
+                    />
+                  </div>
                 </div>
 
                 <textarea

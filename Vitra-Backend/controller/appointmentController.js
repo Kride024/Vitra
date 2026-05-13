@@ -11,10 +11,19 @@ const normalizeRole = (role) => {
 
 const createAppointment = async (req, res) => {
   try {
-    const { doctorUserId, healthDescription, reportNotes, imageAttachment, reportAttachment } = req.body;
+    const { doctorUserId, scheduledAt, healthDescription, reportNotes, imageAttachment, reportAttachment } = req.body;
 
-    if (!doctorUserId || !healthDescription) {
-      return res.status(400).json({ message: "doctorUserId and healthDescription are required" });
+    if (!doctorUserId || !scheduledAt || !healthDescription) {
+      return res.status(400).json({ message: "doctorUserId, scheduledAt and healthDescription are required" });
+    }
+
+    const parsedScheduledAt = new Date(scheduledAt);
+    if (Number.isNaN(parsedScheduledAt.getTime())) {
+      return res.status(400).json({ message: "Invalid scheduledAt format" });
+    }
+
+    if (parsedScheduledAt.getTime() < Date.now()) {
+      return res.status(400).json({ message: "Appointment time must be in the future" });
     }
 
     const patient = await User.findByPk(req.user.id);
@@ -45,6 +54,9 @@ const createAppointment = async (req, res) => {
       doctorUserId: doctor.id,
       doctorName: `${doctor.firstName} ${doctor.lastName}`,
       doctorEmail: doctor.email,
+      scheduledAt: parsedScheduledAt,
+      callDurationMinutes: 60,
+      callExtendedMinutes: 0,
       healthDescription,
       reportNotes: reportNotes || null,
       imageAttachment: imageAttachment || null,
@@ -72,7 +84,7 @@ const getDoctorAppointments = async (req, res) => {
 
     const appointments = await Appointment.findAll({
       where: { doctorUserId: req.user.id },
-      order: [["createdAt", "DESC"]],
+      order: [["scheduledAt", "ASC"]],
     });
 
     return res.json({ appointments });
@@ -96,7 +108,7 @@ const getPatientAppointments = async (req, res) => {
 
     const appointments = await Appointment.findAll({
       where: { patientUserId: req.user.id },
-      order: [["createdAt", "DESC"]],
+      order: [["scheduledAt", "ASC"]],
     });
 
     return res.json({ appointments });
@@ -174,10 +186,51 @@ const rejectAppointment = async (req, res) => {
   }
 };
 
+const extendCallDuration = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const { additionalMinutes } = req.body;
+
+    const parsedAdditionalMinutes = Number(additionalMinutes);
+    if (!appointmentId || !Number.isInteger(parsedAdditionalMinutes) || parsedAdditionalMinutes <= 0) {
+      return res.status(400).json({ message: "Valid appointmentId and positive integer additionalMinutes are required" });
+    }
+
+    if (parsedAdditionalMinutes > 120) {
+      return res.status(400).json({ message: "additionalMinutes cannot exceed 120 per request" });
+    }
+
+    const appointment = await Appointment.findByPk(appointmentId);
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    if (appointment.doctorUserId !== req.user.id) {
+      return res.status(403).json({ message: "Only the assigned doctor can extend call duration" });
+    }
+
+    if (appointment.status !== "APPROVED") {
+      return res.status(400).json({ message: "Call duration can be extended only for approved appointments" });
+    }
+
+    appointment.callExtendedMinutes = (appointment.callExtendedMinutes || 0) + parsedAdditionalMinutes;
+    await appointment.save();
+
+    return res.json({
+      message: "Call duration extended successfully",
+      appointment,
+    });
+  } catch (error) {
+    console.error("Extend call duration error:", error);
+    return res.status(500).json({ message: "Failed to extend call duration" });
+  }
+};
+
 module.exports = {
   createAppointment,
   getDoctorAppointments,
   getPatientAppointments,
   approveAppointment,
   rejectAppointment,
+  extendCallDuration,
 };

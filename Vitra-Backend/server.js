@@ -12,7 +12,7 @@ const userRoutes = require("./routes/userRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const { Server } = require("socket.io");
-const { getChatAccessContext, normalizeRole } = require("./controller/chatController");
+const { getChatAccessContext, getVideoCallAccessContext, normalizeRole } = require("./controller/chatController");
 const ChatMessage = require("./models/ChatMessage");
 
 const app = express();
@@ -137,6 +137,96 @@ io.on("connection", (socket) => {
     } catch (error) {
       socket.emit("chat:error", {
         message: error.message || "Unable to send chat message",
+      });
+    }
+  });
+
+  socket.on("video:join", async ({ appointmentId }) => {
+    try {
+      if (!appointmentId) {
+        throw new Error("appointmentId is required");
+      }
+
+      const { appointment, callWindow } = await getVideoCallAccessContext(socket.user.id, appointmentId);
+      const roomName = `video:${appointment.id}`;
+
+      socket.join(roomName);
+      const participantCount = io.sockets.adapter.rooms.get(roomName)?.size || 1;
+
+      socket.emit("video:joined", {
+        appointmentId: appointment.id,
+        roomName,
+        participantCount,
+        callWindow,
+      });
+
+      socket.to(roomName).emit("video:peer-ready", {
+        appointmentId: appointment.id,
+      });
+    } catch (error) {
+      socket.emit("video:error", {
+        message: error.message || "Unable to join video call",
+      });
+    }
+  });
+
+  socket.on("video:leave", ({ appointmentId }) => {
+    if (!appointmentId) return;
+    const roomName = `video:${appointmentId}`;
+    socket.leave(roomName);
+    socket.to(roomName).emit("video:peer-left", { appointmentId });
+  });
+
+  socket.on("video:offer", async ({ appointmentId, offer }) => {
+    try {
+      if (!appointmentId || !offer) {
+        throw new Error("appointmentId and offer are required");
+      }
+
+      await getVideoCallAccessContext(socket.user.id, appointmentId);
+      socket.to(`video:${appointmentId}`).emit("video:offer", {
+        appointmentId,
+        offer,
+      });
+    } catch (error) {
+      socket.emit("video:error", {
+        message: error.message || "Unable to send offer",
+      });
+    }
+  });
+
+  socket.on("video:answer", async ({ appointmentId, answer }) => {
+    try {
+      if (!appointmentId || !answer) {
+        throw new Error("appointmentId and answer are required");
+      }
+
+      await getVideoCallAccessContext(socket.user.id, appointmentId);
+      socket.to(`video:${appointmentId}`).emit("video:answer", {
+        appointmentId,
+        answer,
+      });
+    } catch (error) {
+      socket.emit("video:error", {
+        message: error.message || "Unable to send answer",
+      });
+    }
+  });
+
+  socket.on("video:ice-candidate", async ({ appointmentId, candidate }) => {
+    try {
+      if (!appointmentId || !candidate) {
+        throw new Error("appointmentId and candidate are required");
+      }
+
+      await getVideoCallAccessContext(socket.user.id, appointmentId);
+      socket.to(`video:${appointmentId}`).emit("video:ice-candidate", {
+        appointmentId,
+        candidate,
+      });
+    } catch (error) {
+      socket.emit("video:error", {
+        message: error.message || "Unable to send ICE candidate",
       });
     }
   });

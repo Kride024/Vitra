@@ -18,6 +18,36 @@ const createHttpError = (status, message) => {
   return error;
 };
 
+const getCallWindow = (appointment) => {
+  const start = appointment?.scheduledAt ? new Date(appointment.scheduledAt) : null;
+  const baseDuration = Number(appointment?.callDurationMinutes || 60);
+  const extendedDuration = Number(appointment?.callExtendedMinutes || 0);
+  const totalDurationMinutes = baseDuration + extendedDuration;
+
+  if (!start || Number.isNaN(start.getTime())) {
+    return {
+      startAt: null,
+      endAt: null,
+      totalDurationMinutes,
+      isActive: false,
+      minutesRemaining: 0,
+    };
+  }
+
+  const end = new Date(start.getTime() + totalDurationMinutes * 60 * 1000);
+  const now = new Date();
+  const isActive = now >= start && now <= end;
+  const minutesRemaining = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / 60000));
+
+  return {
+    startAt: start,
+    endAt: end,
+    totalDurationMinutes,
+    isActive,
+    minutesRemaining,
+  };
+};
+
 const getChatAccessContext = async (userId, appointmentId) => {
   const appointment = await Appointment.findByPk(appointmentId);
 
@@ -48,6 +78,7 @@ const getChatThread = async (req, res) => {
   try {
     const { appointmentId } = req.params;
     const { appointment } = await getChatAccessContext(req.user.id, appointmentId);
+    const callWindow = getCallWindow(appointment);
 
     const messages = await ChatMessage.findAll({
       where: { appointmentId },
@@ -64,8 +95,18 @@ const getChatThread = async (req, res) => {
         doctorUserId: appointment.doctorUserId,
         doctorName: appointment.doctorName,
         doctorEmail: appointment.doctorEmail,
+        scheduledAt: appointment.scheduledAt,
+        callDurationMinutes: appointment.callDurationMinutes,
+        callExtendedMinutes: appointment.callExtendedMinutes,
         healthDescription: appointment.healthDescription,
         createdAt: appointment.createdAt,
+      },
+      callWindow: {
+        startAt: callWindow.startAt,
+        endAt: callWindow.endAt,
+        totalDurationMinutes: callWindow.totalDurationMinutes,
+        isActive: callWindow.isActive,
+        minutesRemaining: callWindow.minutesRemaining,
       },
       messages,
     });
@@ -74,8 +115,25 @@ const getChatThread = async (req, res) => {
   }
 };
 
+const getVideoCallAccessContext = async (userId, appointmentId) => {
+  const { appointment, user } = await getChatAccessContext(userId, appointmentId);
+
+  if (!appointment.scheduledAt) {
+    throw createHttpError(400, "Appointment schedule is missing");
+  }
+
+  const callWindow = getCallWindow(appointment);
+  if (!callWindow.isActive) {
+    throw createHttpError(403, "Video call is not active at this time");
+  }
+
+  return { appointment, user, callWindow };
+};
+
 module.exports = {
   getChatThread,
   getChatAccessContext,
+  getVideoCallAccessContext,
+  getCallWindow,
   normalizeRole,
 };

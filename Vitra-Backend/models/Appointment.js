@@ -30,6 +30,20 @@ const Appointment = sequelize.define("Appointment", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  scheduledAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  callDurationMinutes: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 60,
+  },
+  callExtendedMinutes: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
   healthDescription: {
     type: DataTypes.TEXT,
     allowNull: false,

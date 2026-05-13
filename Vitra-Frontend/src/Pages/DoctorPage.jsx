@@ -111,6 +111,10 @@ function DoctorPage() {
     navigate(`/chat/${appointmentId}`);
   };
 
+  const openVideoCall = (appointmentId) => {
+    navigate(`/video-call/${appointmentId}`);
+  };
+
   return (
     <div style={{ maxWidth: "900px", margin: "30px auto", padding: "20px" }}>
       <h1>Doctor Personal Page</h1>
@@ -151,6 +155,14 @@ function DoctorPage() {
                 </div>
 
                 <p><strong>Description:</strong> {item.healthDescription}</p>
+                <p>
+                  <strong>Scheduled Time:</strong>{" "}
+                  {item.scheduledAt ? new Date(item.scheduledAt).toLocaleString() : "Not set"}
+                </p>
+                <p>
+                  <strong>Call Duration:</strong>{" "}
+                  {(item.callDurationMinutes || 60) + (item.callExtendedMinutes || 0)} min
+                </p>
                 
                 {item.reportNotes ? <p><strong>Report Notes:</strong> {item.reportNotes}</p> : null}
                 
@@ -251,7 +263,7 @@ function DoctorPage() {
                 )}
 
                 {item.status === "APPROVED" && (
-                  <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px solid #e5e7eb" }}>
+                  <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px solid #e5e7eb", display: "flex", gap: "10px", flexWrap: "wrap" }}>
                     <button
                       onClick={() => openChat(item.id)}
                       style={{
@@ -265,6 +277,20 @@ function DoctorPage() {
                       }}
                     >
                       💬 Open Chat
+                    </button>
+                    <button
+                      onClick={() => openVideoCall(item.id)}
+                      style={{
+                        padding: "8px 16px",
+                        background: "#2563eb",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontWeight: "600",
+                      }}
+                    >
+                      📹 Open Video Call
                     </button>
                   </div>
                 )}

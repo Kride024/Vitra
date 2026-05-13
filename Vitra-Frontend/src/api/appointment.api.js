@@ -13,3 +13,6 @@ export const approveAppointment = (appointmentId) =>
 
 export const rejectAppointment = (appointmentId, reason) =>
   api.patch(`/appointments/${appointmentId}/reject`, { reason });
+
+export const extendCallDuration = (appointmentId, additionalMinutes) =>
+  api.patch(`/appointments/${appointmentId}/extend-call`, { additionalMinutes });

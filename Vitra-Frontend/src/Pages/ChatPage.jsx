@@ -15,9 +15,44 @@ function ChatPage() {
   const [error, setError] = useState("");
   const [joinStatus, setJoinStatus] = useState("idle");
   const [thread, setThread] = useState(null);
+  const [callWindow, setCallWindow] = useState(null);
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [connected, setConnected] = useState(false);
+  const [nowMs, setNowMs] = useState(Date.now());
+
+  const formatRemaining = (msRemaining) => {
+    const totalSeconds = Math.max(0, Math.floor(Number(msRemaining || 0) / 1000));
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
+  const createCallWindow = (appointment, existingWindow = null) => {
+    const startAt = existingWindow?.startAt || appointment?.scheduledAt || null;
+    if (!startAt) {
+      return null;
+    }
+
+    const startMs = new Date(startAt).getTime();
+    if (Number.isNaN(startMs)) {
+      return null;
+    }
+
+    const totalDurationMinutes =
+      Number(appointment?.callDurationMinutes || 60) + Number(appointment?.callExtendedMinutes || 0);
+    const endMs = startMs + totalDurationMinutes * 60 * 1000;
+    const active = nowMs >= startMs && nowMs <= endMs;
+
+    return {
+      startAt: new Date(startMs).toISOString(),
+      endAt: new Date(endMs).toISOString(),
+      totalDurationMinutes,
+      isActive: active,
+      msRemaining: Math.max(0, endMs - nowMs),
+      minutesRemaining: Math.max(0, Math.ceil((endMs - nowMs) / 60000)),
+    };
+  };
 
   const roomTitle = useMemo(() => {
     if (!thread) {
@@ -35,7 +70,9 @@ function ChatPage() {
         setLoading(true);
         setError("");
         const response = await getChatThread(appointmentId);
-        setThread(response.data?.appointment || null);
+        const appointmentData = response.data?.appointment || null;
+        setThread(appointmentData);
+        setCallWindow(response.data?.callWindow || createCallWindow(appointmentData));
         setMessages(response.data?.messages || []);
       } catch (loadError) {
         const serverMessage = loadError.response?.data?.message;
@@ -48,6 +85,17 @@ function ChatPage() {
 
     loadThread();
   }, [appointmentId]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (thread) {
+      setCallWindow((prev) => createCallWindow(thread, prev));
+    }
+  }, [nowMs, thread]);
 
   useEffect(() => {
     if (!token) return undefined;
@@ -143,6 +191,34 @@ function ChatPage() {
             <>
               <p style={{ margin: "0 0 6px 0" }}><strong>Doctor:</strong> {thread.doctorName}</p>
               <p style={{ margin: "0 0 6px 0" }}><strong>Patient:</strong> {thread.patientName}</p>
+              <p style={{ margin: "0 0 6px 0" }}>
+                <strong>Scheduled:</strong> {thread.scheduledAt ? new Date(thread.scheduledAt).toLocaleString() : "Not set"}
+              </p>
+              <p style={{ margin: "0 0 6px 0" }}>
+                <strong>Video Window:</strong> {callWindow?.startAt ? `${new Date(callWindow.startAt).toLocaleTimeString()} - ${new Date(callWindow.endAt).toLocaleTimeString()}` : "Unavailable"}
+              </p>
+              <p style={{ margin: "0 0 6px 0", color: callWindow?.isActive ? "#059669" : "#b45309" }}>
+                <strong>Video Status:</strong> {callWindow?.isActive ? `Active (${callWindow.minutesRemaining} min left)` : "Not active yet / expired"}
+              </p>
+              <p style={{ margin: "0 0 6px 0", color: callWindow?.isActive ? "#0f766e" : "#475569", fontWeight: 600 }}>
+                <strong>Countdown:</strong> {formatRemaining(callWindow?.msRemaining)}
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate(`/video-call/${appointmentId}`)}
+                style={{
+                  marginTop: "8px",
+                  padding: "8px 12px",
+                  border: "none",
+                  borderRadius: "8px",
+                  background: "#2563eb",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                Open Video Call Page
+              </button>
               <p style={{ margin: 0 }}><strong>Issue:</strong> {thread.healthDescription}</p>
             </>
           ) : (
