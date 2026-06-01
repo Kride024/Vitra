@@ -154,5 +154,4 @@ dist/
 
 ---
 
-**Last Updated:** April 28, 2026
 **Status:** Ready for staging/production deployment
